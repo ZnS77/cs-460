@@ -1,0 +1,6 @@
+-J--add-opens=java.base/java.nio=ALL-UNNAMED
+-J--add-opens=java.base/java.net=ALL-UNNAMED
+-J--add-opens=java.base/java.lang=ALL-UNNAMED
+-J--add-opens=java.base/java.util=ALL-UNNAMED
+-J--add-opens=java.base/java.util.concurrent=ALL-UNNAMED
+-J--add-opens=java.base/java.lang.invoke=ALL-UNNAMED
