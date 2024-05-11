@@ -30,36 +30,31 @@ class Aggregator(sc: SparkContext) extends Serializable {
             ratings: RDD[(Int, Int, Option[Double], Double, Int)],
             title: RDD[(Int, String, List[String])]
           ): Unit = {
-    val latestRatingPerUserTitle = helper_getLatestRatingPerUserTitle(ratings)
-    // ((userId, movieId), (userId, prevRating, rating, timestamp))
-    val averageRatingPerTitle = latestRatingPerUserTitle.map {
-      case ((userId, movieId), (_, _, _, rating, _)) => (movieId, rating)
-    }.groupByKey().mapValues(x => (x.sum / x.size, x.size))
-    // (movieId, (average_rating, ratingCounts))
+    val latestRatingPerUserTitle = helper_getLatestRatingPerUserTitle(ratings).groupByKey()
+    // (movieId, List[(userId, prevRating, rating, timestamp)])
 
-    val aggregatedMovies = title.map {
+    aggregated = title.map {
       case (movieId, title, keywords) => (movieId, (title, keywords))
-    }.leftOuterJoin(averageRatingPerTitle).map {
-      case (movieId, ((title, keywords), rateAndCount)) =>
-        (movieId, (title, rateAndCount.getOrElse((0.0, 0)), keywords))
-    }.mapValues(x => (x._1, x._2._1, x._2._2, x._3))
-    // (movieId, (title, average_rating, ratingCounts, keywords))
-    val ratingsByMid = ratings.map {
-      case (userId, movieId, prevRating, rating, ts) => (movieId, (userId, prevRating, rating, ts))
-    }.groupByKey().mapValues(x => x.toList.sortBy(_._4))
-    // (movieId, List[(userId, prevRating, rating, timestamp)]) sorted by timestamp
-    aggregated = aggregatedMovies.leftOuterJoin(ratingsByMid).map {
-      case (movieId, ((title, avgRating, ratingCounts, keywords), ratings)) =>
-        (movieId, (title, avgRating, ratingCounts, keywords, ratings.getOrElse(List())))
-    }
+    }.leftOuterJoin(latestRatingPerUserTitle).map {
+      case (movieId, ((title, keywords), ratingsOption)) =>
+        val ratings = ratingsOption.getOrElse(List()).toList
+        val ratingCounts = ratings.size
+        val avgRating = if (ratingCounts == 0) 0.0
+            else ratings.map(_._3).sum / ratingCounts
+        (movieId, (title, avgRating, ratingCounts, keywords, ratings))
+    }.persist(MEMORY_AND_DISK)
+    // for movies without rating data,
+    // (movieId, (title, 0.0, 0, keywords, List()))
 
   }
 
   private def helper_getLatestRatingPerUserTitle(ratings: RDD[(Int, Int, Option[Double], Double, Int)]):
-  RDD[((Int, Int), (Int, Int, Option[Double], Double, Int))] =
+  RDD[(Int, (Int, Option[Double], Double, Int))] =
     ratings.groupBy {
       case (userId, movieId, _, _, ts) => (userId, movieId)
     }.mapValues(x => x.toList.maxBy(_._5)) //ascending order of timestamp, get the latest one
+      .map{x => (x._1._2, (x._2._1, x._2._3, x._2._4, x._2._5))}
+  // (movieId, (userId, prevRating, rating, timestamp))
 
   /**
    * Return pre-computed title-rating pairs.
@@ -83,7 +78,7 @@ class Aggregator(sc: SparkContext) extends Serializable {
    */
   def getKeywordQueryResult(keywords: List[String]): Double = {
     val moviesWithKeywords = aggregated.filter {
-      case (_, (_, _, _, movieKeywords, _)) => movieKeywords.containsSlice(keywords)
+      case (_, (_, _, _, movieKeywords, _)) => keywords.forall(movieKeywords.contains(_))
     }.map {
       case (movieId, (_, avgRating, _, movieKeywords, _)) => (movieId, movieKeywords, avgRating)
     }
@@ -93,10 +88,14 @@ class Aggregator(sc: SparkContext) extends Serializable {
     val keywordRDD = sc.parallelize(keywords).map(x => (x, 0.0))
     val joined = keywordRDD.leftOuterJoin(groupedKeywordMovies)
     // (keyword, (0.0, Some(List[(movieId, avgRating)])))
-    val avgRating = joined.map {
-      case (_, (0.0, None)) => -1.0 //no title with the given keyword
-      case (_, (0.0, moviesRatings)) => moviesRatings.get.map(_._2).sum / moviesRatings.get.size
-    }.sum() / keywords.size
+    val avgRatings = joined.mapValues{
+      case (0.0, None) => -1.0 //no title with the given keyword
+      case (0.0, moviesRatings) => moviesRatings.get.map(_._2).sum / moviesRatings.get.size
+    }
+    //to debug
+//    avgRatings.foreach(println)
+    val avgRating = avgRatings.values.sum / keywords.size
+
     avgRating
   }
 
@@ -108,20 +107,24 @@ class Aggregator(sc: SparkContext) extends Serializable {
    */
   def updateResult(delta_ : Array[(Int, Int, Option[Double], Double, Int)]): Unit = {
     val delta = sc.parallelize(delta_)
-    val latestDeltaRatingPerUserTitle = helper_getLatestRatingPerUserTitle(delta)
-      .map { x => (x._1._2, (x._2._1, x._2._3, x._2._4, x._2._5)) }
+    val latestDeltaRatings = helper_getLatestRatingPerUserTitle(delta).groupByKey()
+    // (movieId, List[(userId, prevRating, rating, timestamp)])
 
-  val deltaGroupByMid = latestDeltaRatingPerUserTitle.groupByKey().mapValues(x => x.toList.sortBy(_._4))
-  val updatedAggregated = aggregated.leftOuterJoin(deltaGroupByMid).map {
-    case (movieId, ((title, avgRating, ratingCounts, keywords, ratings), deltaRatings)) =>
-      val newRatings = deltaRatings.getOrElse(List())
-      val updatedRatings = ratings ++ newRatings
-      val updatedRatingCounts = ratingCounts + newRatings.size
-      val updatedAvgRating = if (updatedRatingCounts == 0) 0.0
-      else updatedRatings.map(_._3).sum / updatedRatingCounts
-      (movieId, (title, updatedAvgRating, updatedRatingCounts, keywords, updatedRatings))
+    aggregated = aggregated.leftOuterJoin(latestDeltaRatings).map {
+      case (movieId, ((title, avgRating, ratingCounts, keywords, ratings), deltaRatingsOption)) =>
+        val deltaRatings = deltaRatingsOption.getOrElse(List()).toList
+        val newRatings = ratings ++ deltaRatings
+        // List(userid, prevRating, rating, timestamp)
+        // drop duplicate ratings
+        val ratingsToKeep = newRatings.groupBy(_._1).view.mapValues(x=>x.maxBy(_._4)).values.toList
+        val newRatingCounts = ratingsToKeep.size
+        val newAvgRating = if (newRatingCounts == 0) 0.0
+        else ratingsToKeep.map(_._3).sum / newRatingCounts
+        (movieId, (title, newAvgRating, newRatingCounts, keywords, newRatings))
     }
-  aggregated = updatedAggregated
+    // to debug
+    // aggregated.foreach(println)
+
   }
 
 
