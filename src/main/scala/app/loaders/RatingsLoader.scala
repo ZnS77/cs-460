@@ -18,5 +18,28 @@ class RatingsLoader(sc : SparkContext, path : String) extends Serializable {
    *
    * @return The RDD for the given ratings
    */
-  def load() : RDD[(Int, Int, Option[Double], Double, Int)] = ???
+  def load(): RDD[(Int, Int, Option[Double], Double, Int)] = {
+    val distFile = sc.textFile("./src/main/resources/" + path)
+    val ratings = distFile.map(line =>
+      val fields = line.split("\\|")
+      (fields(0).toInt, fields(1).toInt, fields(2).toDouble, fields(3).toInt)
+    )
+    val groupedRatings = ratings.groupBy {
+      case (userId, movieId, _, _) => (userId, movieId)
+    }
+    val sortedRatings = groupedRatings.mapValues(x => x.toList.sortBy(_._4))
+    //(user_id, movie_id), List[(user_id, movie_id, rating, timestamp)]
+    val ratingsWithPre = sortedRatings.mapValues(x => {
+      //x: List[(user_id, movie_id, rating, timestamp)]
+      x.zipWithIndex.map {
+        case ((userId, movieId, rating, timestamp), index) =>
+          val prevRating = if (index == 0) None else Some(x(index - 1)._3)
+          (userId, movieId, prevRating, rating, timestamp)
+      }
+    })
+    ratingsWithPre.flatMap(_._2)
+  }
 }
+
+
+
