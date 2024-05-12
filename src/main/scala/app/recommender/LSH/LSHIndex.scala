@@ -3,7 +3,7 @@ package app.recommender.LSH
 import org.apache.spark.HashPartitioner
 import org.apache.spark.rdd.RDD
 import org.apache.spark.rdd.RDD.rddToPairRDDFunctions
-
+import org.apache.spark.storage.StorageLevel.MEMORY_AND_DISK
 import scala.reflect.ClassTag
 
 /**
@@ -31,7 +31,14 @@ class LSHIndex(data: RDD[(Int, String, List[String])], seed : IndexedSeq[Int]) e
    * @return Data structure of LSH index
    */
   def getBuckets()
-  : RDD[(IndexedSeq[Int], List[(Int, String, List[String])])] = ???
+  : RDD[(IndexedSeq[Int], List[(Int, String, List[String])])] = {
+    val hashed = data.map{
+      case (id, title, keywords) => (minhash.hash(keywords), (id, title, keywords))
+    }.groupByKey()
+      .mapValues(_.toList)
+    hashed.partitionBy(new HashPartitioner(4)).persist(MEMORY_AND_DISK)
+    hashed
+  }
 
   /**
    * Lookup operation on the LSH index
@@ -42,5 +49,17 @@ class LSHIndex(data: RDD[(Int, String, List[String])], seed : IndexedSeq[Int]) e
    *         If no match exists in the LSH index, return an empty result list.
    */
   def lookup[T: ClassTag](queries: RDD[(IndexedSeq[Int], T)])
-  : RDD[(IndexedSeq[Int], T, List[(Int, String, List[String])])] = ???
+  : RDD[(IndexedSeq[Int], T, List[(Int, String, List[String])])] = {
+    val hashedData = getBuckets()
+    queries.flatMap {
+      case (signature, payload) => {
+        val candidates = hashedData.filter {
+          case (sig, _) => sig == signature
+        }.values.flatMap(x => x).collect().toList
+        if (candidates.isEmpty) None
+        else List((signature, payload, candidates))
+      }
+    }
+  }
+
 }
