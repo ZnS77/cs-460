@@ -20,7 +20,7 @@ class NNLookup(lshIndex: LSHIndex) extends Serializable {
     val hashedQueries = lshIndex.hash(queries)
     val ans = lshIndex.lookup(hashedQueries).map(x => (x._2, x._3))
     //to debug
-    ans.foreach(println)
+    //ans.foreach(println)
     ans
   }
 }

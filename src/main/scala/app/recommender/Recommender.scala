@@ -19,7 +19,13 @@ class Recommender(sc: SparkContext, index: LSHIndex, ratings: RDD[(Int, Int, Opt
 
   private def helper_getNNMoviesId(genre: List[String]): List[Int] = {
     val genreRDD = sc.parallelize(List(genre))
-    nn_lookup.lookup(genreRDD).flatMap(x => x._2).map(x => x._1).collect().toList
+    val moviesRelated = nn_lookup.lookup(genreRDD).flatMap(x => x._2).map(x => x._1).collect().toList
+    moviesRelated
+  }
+
+  private def filterWatched(userId: Int, movieIds: List[Int]): List[Int] = {
+    val watched = baselinePredictor.movieWatched(userId)
+    movieIds.filterNot(watched.contains(_))
   }
   /**
    * Returns the top K recommendations for movies similar to the List of genres
@@ -27,7 +33,8 @@ class Recommender(sc: SparkContext, index: LSHIndex, ratings: RDD[(Int, Int, Opt
    */
   def recommendBaseline(userId: Int, genre: List[String], K: Int): List[(Int, Double)] ={
     val movieIdsToRate = helper_getNNMoviesId(genre)
-    val ratings = movieIdsToRate.map(movieId => (movieId, baselinePredictor.predict(userId, movieId)))
+    val candidates = filterWatched(userId, movieIdsToRate)
+    val ratings = candidates.map(movieId => (movieId, baselinePredictor.predict(userId, movieId)))
     ratings.sortBy(-_._2).take(K)
   }
 
@@ -36,7 +43,8 @@ class Recommender(sc: SparkContext, index: LSHIndex, ratings: RDD[(Int, Int, Opt
    */
   def recommendCollaborative(userId: Int, genre: List[String], K: Int): List[(Int, Double)] = {
     val movieIdsToRate = helper_getNNMoviesId(genre)
-    val ratings = movieIdsToRate.map(movieId => (movieId, collaborativePredictor.predict(userId, movieId)))
+    val candidates = filterWatched(userId, movieIdsToRate)
+    val ratings = candidates.map(movieId => (movieId, collaborativePredictor.predict(userId, movieId)))
     ratings.sortBy(-_._2).take(K)
   }
 }

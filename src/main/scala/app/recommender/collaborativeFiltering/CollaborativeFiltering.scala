@@ -19,7 +19,7 @@ class CollaborativeFiltering(rank: Int,
     }.mapValues(x => x.toList.maxBy(_._5))
       .map { x => Rating(x._1._1, x._2._2, x._2._4) }
     // (userId, movieId, rating)
-    model = ALS.train(latestRatings, rank, maxIterations, regularizationParameter, n_parallel)
+    model = ALS.train(latestRatings, rank, maxIterations, regularizationParameter, n_parallel, seed)
   }
 
   def predict(userId: Int, movieId: Int): Double = {
