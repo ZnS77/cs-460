@@ -1727,6 +1727,11 @@ class MainTest {
       .collect()
       .sortWith((t1, t2) => t1.toString() <= t2.toString())
 
+    if (res.length == 0) {
+      println("Expected a result with length greater than 0")
+      assert(false)
+    }
+
     res.zip(expected).foreach(t => assert(t._1.toString() == t._2))
   }
 
@@ -1759,6 +1764,11 @@ class MainTest {
       .collect()
       .sortWith((t1, t2) => t1.toString() <= t2.toString())
 
+    if (res.length == 0) {
+      println("Expected a result with length greater than 0")
+      assert(false)
+    }
+
     res.zip(expected).foreach(t => {
       if (t._1.toString() != t._2.toString()) {
         println(t._1.toString() + " != " + t._2)
@@ -1779,6 +1789,11 @@ class MainTest {
     val res = processor.getNumberOfMoviesRatedEachYear
       .collect()
       .sortWith(_._1 <= _._1)
+
+    if (res.length == 0) {
+      println("Expected a result with length greater than 0")
+      assert(false)
+    }
 
     val expected = Array(
       (1996, 4),
@@ -1833,6 +1848,11 @@ class MainTest {
       .collect()
       .sortWith(_._1 <= _._1)
 
+    if (res.length == 0) {
+      println("Expected a result with length greater than 0")
+      assert(false)
+    }
+
     val expected = Array(
       (1996, "Toy Story (1995)"),
       (1997, "Star Wars: Episode VI - Return of the Jedi (1983)"),
@@ -1885,6 +1905,11 @@ class MainTest {
     val res = processor.getMostRatedGenreEachYear
       .collect()
       .sortWith(_._1 <= _._1)
+
+    if (res.length == 0) {
+      println("Expected a result with length greater than 0")
+      assert(false)
+    }
 
     val expected = Array(
       (1996, List("Adventure", "Animation", "Children", "Comedy", "Fantasy")),
@@ -1982,6 +2007,11 @@ class MainTest {
       .collect()
       .sortWith(_ <= _)
 
+    if (res.length == 0) {
+      println("Expected a result with length greater than 0")
+      assert(false)
+    }
+
     val expected = Array(
       "Avatar (2009)",
       "Star Wars: Episode II - Attack of the Clones (2002)",
@@ -2011,6 +2041,11 @@ class MainTest {
     val res = processor.getAllMoviesByGenre_usingBroadcast(movies, List("IMAX"), broadcastCallback)
       .collect()
       .sortWith(_ <= _)
+
+    if (res.length == 0) {
+      println("Expected a result with length greater than 0")
+      assert(false)
+    }
 
     val expected = Array(
       "Avatar (2009)",
@@ -2044,6 +2079,11 @@ class MainTest {
     val res = processor.getNumberOfMoviesRatedEachYear
       .collect()
       .sortWith(_._1 <= _._1)
+
+    if (res.length == 0) {
+      println("Expected a result with length greater than 0")
+      assert(false)
+    }
 
     val expected = Array(
       (1996, 607),
@@ -2098,6 +2138,11 @@ class MainTest {
       .collect()
       .sortWith(_._1 <= _._1)
 
+    if (res.length == 0) {
+      println("Expected a result with length greater than 0")
+      assert(false)
+    }
+
     val expected = Array(
       (1996, "Batman (1989)"),
       (1997, "Independence Day (a.k.a. ID4) (1996)"),
@@ -2150,6 +2195,11 @@ class MainTest {
     val res = processor.getMostRatedGenreEachYear
       .collect()
       .sortWith(_._1 <= _._1)
+
+    if (res.length == 0) {
+      println("Expected a result with length greater than 0")
+      assert(false)
+    }
 
     val expected = Array(
       (1996, List("Action", "Crime", "Thriller")),
@@ -2245,6 +2295,11 @@ class MainTest {
     val res = processor.getAllMoviesByGenre(movies, moviesRdd)
       .collect()
       .sortWith(_ <= _)
+
+    if (res.isEmpty) {
+      println("Expected a result with length greater than 0")
+      assert(false)
+    }
 
     val expected = Array(
       "300 (2007)",
@@ -2430,6 +2485,11 @@ class MainTest {
       .collect()
       .sortWith(_ <= _)
 
+    if (res.isEmpty) {
+      println("Expected a result with length greater than 0")
+      assert(false)
+    }
+
     val expected = Array(
       "300 (2007)",
       "300: Rise of an Empire (2014)",
@@ -2614,6 +2674,11 @@ class MainTest {
       .collect()
       .sortWith((a, b) => a.toString() <= b.toString())
 
+    if (res.isEmpty) {
+      println("Expected a result with length greater than 0")
+      assert(false)
+    }
+
     val expected = Array(
       ("Avatar (2009)", 3.5729166666666665),
       ("Lord of the Rings, The (1978)", 3.142857142857143),
@@ -2681,6 +2746,11 @@ class MainTest {
       .collect()
       .sortWith((a, b) => a.toString() <= b.toString())
 
+    if (res.isEmpty) {
+      println("Expected a result with length greater than 0")
+      assert(false)
+    }
+
     val expected = Array(
       ("Avatar (2009)", 3.5729166666666665),
       ("Lord of the Rings, The (1978)", 3.142857142857143),
@@ -2736,6 +2806,11 @@ class MainTest {
       .getResult()
       .collect()
       .sortWith((a, b) => a.toString() <= b.toString())
+
+    if (res.isEmpty) {
+      println("Expected a result with length greater than 0")
+      assert(false)
+    }
 
     val expected = Array(
       ("Avatar (2009)", 3.5729166666666665),
@@ -2796,6 +2871,11 @@ class MainTest {
       .collect()
       .sortWith((a, b) => a.toString() <= b.toString())
 
+    if (res.isEmpty) {
+      println("Expected a result with length greater than 0")
+      assert(false)
+    }
+
     val expected = Array(
       ("Avatar (2009)", 3.5729166666666665),
       ("Lord of the Rings, The (1978)", 3.1428),
@@ -2855,6 +2935,11 @@ class MainTest {
       .collect()
       .sortWith((a, b) => a.toString() <= b.toString())
 
+    if (res.isEmpty) {
+      println("Expected a result with length greater than 0")
+      assert(false)
+    }
+
     val expected = Array(
       ("Avatar (2009)", 3.5729166666666665),
       ("Lord of the Rings, The (1978)", 3.1428),
@@ -2907,6 +2992,11 @@ class MainTest {
       .getResult()
       .reduceByKey(_ + _) // A couple of movies occur twice with differing movie ids
       .collect().toMap
+
+    if (res.isEmpty) {
+      println("Expected a result with length greater than 0")
+      assert(false)
+    }
 
     val file = new File(getClass.getResource("/aggr-res.csv").getFile).getPath
 
@@ -2961,6 +3051,11 @@ class MainTest {
       .reduceByKey(_ + _)  // A couple of movies occur twice with differing movie ids
       .collect().toMap
 
+    if (res.isEmpty) {
+      println("Expected a result with length greater than 0")
+      assert(false)
+    }
+
     val file = new File(getClass.getResource("/aggr-res2.csv").getFile).getPath
 
     val expected = sc
@@ -2998,6 +3093,11 @@ class MainTest {
       .map(t => (t._1, t._2.sortWith((t1, t2) => t1.toString() <= t2.toString())))
       .sortWith((t1, t2) => t1._1.toString() <= t2._1.toString())
 
+    if (res.isEmpty) {
+      println("Expected a result with length greater than 0")
+      assert(false)
+    }
+
     val expected = Array(
       "(Vector(30680, 44455),List((1,Toy Story (1995),List(Adventure, Animation, Children, Comedy, Fantasy)), (2116,Lord of the Rings, The (1978),List(Adventure, Animation, Children, Fantasy)), (3114,Toy Story 2 (1999),List(Adventure, Animation, Children, Comedy, Fantasy)), (78499,Toy Story 3 (2010),List(Adventure, Animation, Children, Comedy, Fantasy, IMAX))))",
       "(Vector(59702, 13197),List((1196,Star Wars: Episode V - The Empire Strikes Back (1980),List(Action, Adventure, Sci-Fi)), (1210,Star Wars: Episode VI - Return of the Jedi (1983),List(Action, Adventure, Sci-Fi)), (122886,Star Wars: Episode VII - The Force Awakens (2015),List(Action, Adventure, Fantasy, Sci-Fi, IMAX)), (166528,Rogue One: A Star Wars Story (2016),List(Action, Adventure, Fantasy, Sci-Fi)), (179819,Star Wars: The Last Jedi (2017),List(Action, Adventure, Fantasy, Sci-Fi)), (260,Star Wars: Episode IV - A New Hope (1977),List(Action, Adventure, Sci-Fi)), (2628,Star Wars: Episode I - The Phantom Menace (1999),List(Action, Adventure, Sci-Fi)), (33493,Star Wars: Episode III - Revenge of the Sith (2005),List(Action, Adventure, Sci-Fi)), (5378,Star Wars: Episode II - Attack of the Clones (2002),List(Action, Adventure, Sci-Fi, IMAX)), (72998,Avatar (2009),List(Action, Adventure, Sci-Fi, IMAX))))",
@@ -3022,6 +3122,21 @@ class MainTest {
       .collect()
       .map(t => (t._1, t._2.sortWith((t1, t2) => t1.toString() <= t2.toString())))
       .sortWith((t1, t2) => t1._1.toString() <= t2._1.toString())
+
+    if (res.isEmpty) {
+      println("Expected a result with length greater than 0")
+      assert(false)
+    }
+
+    if (res.isEmpty) {
+      println("Expected a result with length greater than 0")
+      assert(false)
+    }
+
+    if (res.isEmpty) {
+      println("Expected a result with length greater than 0")
+      assert(false)
+    }
 
     val expected = Array(
       "(List(Action, Adventure, Drama, Fantasy),List((4993,Lord of the Rings: The Fellowship of the Ring, The (2001),List(Adventure, Fantasy)), (5952,Lord of the Rings: The Two Towers, The (2002),List(Adventure, Fantasy)), (7153,Lord of the Rings: The Return of the King, The (2003),List(Action, Adventure, Drama, Fantasy))))",
@@ -3050,6 +3165,7 @@ class MainTest {
       .map(t => (t._1, t._2.sortWith((t1, t2) => t1.toString() <= t2.toString())))
       .sortWith((t1, t2) => t1._1.toString() <= t2._1.toString())
 
+    res.foreach(println)
     val expected = Array(
       "(List(cowboy),List())",
       "(List(space),List())"
@@ -3073,6 +3189,11 @@ class MainTest {
       .filter(x => x._2.filter(y =>
         x._1.size == y._3.size && x._1.zip(y._3).filter(a => a._1 != a._2).size == 0
       ).size != 0)
+
+    if (res.isEmpty) {
+      println("Expected a result with length greater than 0")
+      assert(false)
+    }
 
     assert(res.count() == moviesLoader.load().count())
   }
@@ -3432,6 +3553,11 @@ class MainTest {
   }
 
   def verifyRecommendations(predictions: List[(Int, Double)], expected: List[(Int, Double)]): Unit = {
+    if (predictions.isEmpty && expected.nonEmpty) {
+      println("Expected at least one prediction")
+      assert(false)
+    }
+
     val expected_map = expected.toMap
     predictions.foreach({ case (id, rating) => {
       if (!expected_map.contains(id)){
