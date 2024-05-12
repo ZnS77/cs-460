@@ -13,7 +13,7 @@ class Recommender(sc: SparkContext, index: LSHIndex, ratings: RDD[(Int, Int, Opt
   private val nn_lookup = new NNLookup(index)
   private val collaborativePredictor = new CollaborativeFiltering(10, 0.1, 0, 4)
   collaborativePredictor.init(ratings)
-
+  sc.setCheckpointDir("./tmp/checkpoints")
   private val baselinePredictor = new BaselinePredictor()
   baselinePredictor.init(ratings)
 

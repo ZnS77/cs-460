@@ -69,3 +69,7 @@ src/main/resources/
 !src/main/resources/log4j2.properties
 !src/main/resources/movies_small.csv
 !src/main/resources/ratings_small.csv
+
+
+# checkpoints
+tmp/checkpoints

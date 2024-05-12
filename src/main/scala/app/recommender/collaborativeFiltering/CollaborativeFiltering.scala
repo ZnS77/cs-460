@@ -2,6 +2,7 @@ package app.recommender.collaborativeFiltering
 
 import org.apache.spark.mllib.recommendation.{ALS, MatrixFactorizationModel, Rating}
 import org.apache.spark.rdd.RDD
+import org.apache.spark.SparkContext
 
 
 class CollaborativeFiltering(rank: Int,
@@ -19,6 +20,11 @@ class CollaborativeFiltering(rank: Int,
     }.mapValues(x => x.toList.maxBy(_._5))
       .map { x => Rating(x._1._1, x._2._2, x._2._4) }
     // (userId, movieId, rating)
+
+    // to avoid stackoverflow error
+
+    val als = new ALS()
+    als.setCheckpointInterval(2)
     model = ALS.train(latestRatings, rank, maxIterations, regularizationParameter, n_parallel, seed)
   }
 
