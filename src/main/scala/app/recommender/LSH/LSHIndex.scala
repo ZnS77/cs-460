@@ -36,7 +36,7 @@ class LSHIndex(data: RDD[(Int, String, List[String])], seed : IndexedSeq[Int]) e
       case (id, title, keywords) => (minhash.hash(keywords), (id, title, keywords))
     }.groupByKey()
       .mapValues(_.toList)
-    hashed.partitionBy(new HashPartitioner(4)).persist(MEMORY_AND_DISK)
+    hashed.partitionBy(new HashPartitioner(hashed.getNumPartitions)).cache()
     hashed
   }
 
@@ -51,8 +51,9 @@ class LSHIndex(data: RDD[(Int, String, List[String])], seed : IndexedSeq[Int]) e
   def lookup[T: ClassTag](queries: RDD[(IndexedSeq[Int], T)])
   : RDD[(IndexedSeq[Int], T, List[(Int, String, List[String])])] = {
     val hashedData = getBuckets()
-    val joined = queries.join(hashedData)
-    joined.map(x=>(x._1, x._2._1, x._2._2))
+    val joined = queries.leftOuterJoin(hashedData)
+      .map(x => (x._1, x._2._1, x._2._2.getOrElse(List())))
+    joined
   }
 
 }

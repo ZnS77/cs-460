@@ -3164,8 +3164,8 @@ class MainTest {
       .collect()
       .map(t => (t._1, t._2.sortWith((t1, t2) => t1.toString() <= t2.toString())))
       .sortWith((t1, t2) => t1._1.toString() <= t2._1.toString())
-
-    res.foreach(println)
+    //to debug
+    //res.foreach(println)
     val expected = Array(
       "(List(cowboy),List())",
       "(List(space),List())"

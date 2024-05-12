@@ -23,9 +23,13 @@ class CollaborativeFiltering(rank: Int,
 
     // to avoid stackoverflow error
 
-    val als = new ALS()
-    als.setCheckpointInterval(2)
-    model = ALS.train(latestRatings, rank, maxIterations, regularizationParameter, n_parallel, seed)
+    val als = new ALS().setCheckpointInterval(1)
+      .setSeed(seed)
+      .setRank(rank)
+      .setIterations(maxIterations)
+      .setLambda(regularizationParameter)
+      .setBlocks(n_parallel)
+    model = als.run(latestRatings)
   }
 
   def predict(userId: Int, movieId: Int): Double = {
