@@ -18,6 +18,9 @@ class NNLookup(lshIndex: LSHIndex) extends Serializable {
   def lookup(queries: RDD[List[String]])
   : RDD[(List[String], List[(Int, String, List[String])])] = {
     val hashedQueries = lshIndex.hash(queries)
-    lshIndex.lookup(hashedQueries).map(x => (x._2, x._3))
+    val ans = lshIndex.lookup(hashedQueries).map(x => (x._2, x._3))
+    //to debug
+    ans.foreach(println)
+    ans
   }
 }

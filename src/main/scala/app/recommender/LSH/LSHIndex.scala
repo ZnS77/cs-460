@@ -51,15 +51,8 @@ class LSHIndex(data: RDD[(Int, String, List[String])], seed : IndexedSeq[Int]) e
   def lookup[T: ClassTag](queries: RDD[(IndexedSeq[Int], T)])
   : RDD[(IndexedSeq[Int], T, List[(Int, String, List[String])])] = {
     val hashedData = getBuckets()
-    queries.flatMap {
-      case (signature, payload) => {
-        val candidates = hashedData.filter {
-          case (sig, _) => sig == signature
-        }.values.flatMap(x => x).collect().toList
-        if (candidates.isEmpty) None
-        else List((signature, payload, candidates))
-      }
-    }
+    val joined = queries.join(hashedData)
+    joined.map(x=>(x._1, x._2._1, x._2._2))
   }
 
 }
